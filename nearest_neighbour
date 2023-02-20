@@ -1,0 +1,23 @@
+import cv2
+import numpy as np
+
+# 最近邻插值
+def nearest_neighbour(src, dst_height, dst_width):
+    src_height, src_width, channels = src.shape
+    dst = np.zeros((dst_height, dst_width, channels), np.uint8)
+    sh = dst_height / src_height
+    sw = dst_width / src_width
+    for i in range(dst_height):
+        for j in range(dst_width):
+            x = int(i / sh)
+            y = int(j / sw)
+            dst[i, j] = src[x, y]
+    return dst
+
+src = cv2.imread("Resources/lenna.jpg")
+dst = nearest_neighbour(src, 256*3, 256*3)
+dst_1 = nearest_neighbour(src, int(256*0.4), int(256*0.4))
+cv2.imshow("Triple magnification", dst)
+cv2.imshow("0.4x reduction", dst_1)
+cv2.imshow("image", src)
+cv2.waitKey(0)

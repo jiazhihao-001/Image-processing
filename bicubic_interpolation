@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import math
-import sys, time
+import sys
 
 # Interpolation kernel
 def u(s,a):
@@ -85,13 +85,13 @@ def bicubic(img, ratio, a):
     return dst
 
 # Read image
-img = cv2.imread('butterfly.png')
+img = cv2.imread("Resources/lenna.jpg")
 
 # Scale factor
-ratio = 2
+ratio = 0.4
 # Coefficient
 a = -1/2
 
 dst = bicubic(img, ratio, a)
 print('Completed!')
-cv2.imwrite('bicubic_butterfly.png', dst)
+cv2.imwrite('Resources/bicubic_0.4x_lenna.jpg', dst)

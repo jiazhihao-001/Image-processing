@@ -1,0 +1,95 @@
+import cv2
+import numpy as np
+import sys
+
+def stackImages(scale,imgArray):
+    rows = len(imgArray)
+    cols = len(imgArray[0])
+    rowsAvailable = isinstance(imgArray[0], list)
+    width = imgArray[0][0].shape[1]
+    height = imgArray[0][0].shape[0]
+    if rowsAvailable:
+        for x in range ( 0, rows):
+            for y in range(0, cols):
+                if imgArray[x][y].shape[:2] == imgArray[0][0].shape [:2]:
+                    imgArray[x][y] = cv2.resize(imgArray[x][y], (0, 0), None, scale, scale)
+                else:
+                    imgArray[x][y] = cv2.resize(imgArray[x][y], (imgArray[0][0].shape[1], imgArray[0][0].shape[0]), None, scale, scale)
+                if len(imgArray[x][y].shape) == 2: imgArray[x][y]= cv2.cvtColor( imgArray[x][y], cv2.COLOR_GRAY2BGR)
+        imageBlank = np.zeros((height, width, 3), np.uint8)
+        hor = [imageBlank]*rows
+        hor_con = [imageBlank]*rows
+        for x in range(0, rows):
+            hor[x] = np.hstack(imgArray[x])
+        ver = np.vstack(hor)
+    else:
+        for x in range(0, rows):
+            if imgArray[x].shape[:2] == imgArray[0].shape[:2]:
+                imgArray[x] = cv2.resize(imgArray[x], (0, 0), None, scale, scale)
+            else:
+                imgArray[x] = cv2.resize(imgArray[x], (imgArray[0].shape[1], imgArray[0].shape[0]), None,scale, scale)
+            if len(imgArray[x].shape) == 2: imgArray[x] = cv2.cvtColor(imgArray[x], cv2.COLOR_GRAY2BGR)
+        hor= np.hstack(imgArray)
+        ver = hor
+    return ver
+
+def get_progressbar_str(progress):
+    END = 170
+    MAX_LEN = 30
+    BAR_LEN = int(MAX_LEN * progress)
+    return ('Progress:[' + '=' * BAR_LEN +
+            ('>' if BAR_LEN < MAX_LEN else '') +
+            ' ' * (MAX_LEN - BAR_LEN) +
+            '] %.1f%%' % (progress * 100.))
+
+# Gaussian filter
+def gaussian_filter(img, K_size, sigma):
+    if len(img.shape) == 3:
+        H, W, C = img.shape
+    else:
+        img = np.expand_dims(img, axis=-1)
+        H, W, C = img.shape
+
+    ## Zero padding
+    pad = K_size // 2
+    out = np.zeros((H + pad * 2, W + pad * 2, C), dtype=float)
+    out[pad: pad + H, pad: pad + W] = img.copy().astype(float)
+
+    print('Start gaussian_filter')
+    print('It will take a little while...')
+    inc = 0
+    ## prepare Kernel
+    K = np.zeros((K_size, K_size), dtype=float)
+    for x in range(-pad, -pad + K_size):
+        for y in range(-pad, -pad + K_size):
+            K[y + pad, x + pad] = np.exp(-(x ** 2 + y ** 2) / (2 * (sigma ** 2)))
+    K /= (2 * np.pi * sigma * sigma)
+    K /= K.sum()
+    tmp = out.copy()
+
+    # filtering
+    for y in range(H):
+        for x in range(W):
+            for c in range(C):
+                out[pad + y, pad + x, c] = np.sum(K * tmp[y: y + K_size, x: x + K_size, c])
+                #之下为系统计时
+                inc = inc + 1
+                sys.stderr.write('\r\033[K' + get_progressbar_str(inc / (H * W * C+9)))
+                sys.stderr.flush()
+    out = np.clip(out, 0, 255)
+    out = out[pad: pad + H, pad: pad + W].astype(np.uint8)
+    sys.stderr.write('\n')
+    sys.stderr.flush()
+    return out
+
+# Read image
+img = cv2.imread("Resources/lenaNoise.png")
+# Gaussian Filter
+out = gaussian_filter(img, K_size=5, sigma=3.0)
+out_1 = gaussian_filter(img, K_size=3, sigma=3.0)
+print('Completed!')
+# Save result
+imgStack = stackImages(1.0, ([img, out, out_1]))
+cv2.imshow("Img", imgStack)
+cv2.waitKey(0)
+cv2.destroyAllWindows()

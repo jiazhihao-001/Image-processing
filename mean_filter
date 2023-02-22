@@ -89,14 +89,14 @@ def mean_filter(image, filter_size):
     return filtered_image
 
 # Read image
-img = cv2.imread("Resources/Dilireba.jpg")
+img = cv2.imread("Resources/lenaNoise.png")
 # Mean Filter
 out = mean_filter(img, 3)
 out_1 = mean_filter(img, 5)
 out_2 = mean_filter(img, 7)
 print('Completed!')
 # Save result
-imgStack = stackImages(1.0, ([img, out, out_1, out_2]))
+imgStack = stackImages(0.6, ([img, out], [out_1, out_2]))
 cv2.imshow("Img", imgStack)
 cv2.waitKey(0)
 cv2.destroyAllWindows()

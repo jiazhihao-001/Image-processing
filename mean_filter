@@ -60,7 +60,7 @@ def mean_filter(image, filter_size):
     # store each window in "windows" as the filter
     # traces the image
 
-    print('Start bicubic interpolation')
+    print('Start mean_filter')
     print('It will take a little while...')
     inc = 0
     for i, j in product(range(new_img_height), range(new_img_width)):
